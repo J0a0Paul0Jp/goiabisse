@@ -1,0 +1,30 @@
+version: '3.4'
+services:
+  webapimvc:
+    image: webapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DbUser: "SA"
+      Password: "admin"
+      Database: "TestDB"
+
+
+    ports:
+     - "8080:8080"       
+    depends_on: 
+     - sqldata
+
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    
+    environment:
+      - SA_PASSWORD=admin
+      - ACCEPT_EULA=Y
+    
+    # volumes:
+    #    - .../docker/data:/var/opt/mssql/data   
+    
+    ports:          
+      - "5434:1433"

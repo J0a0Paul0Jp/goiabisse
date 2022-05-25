@@ -1,0 +1,4 @@
+###########Libear porta##################
+iptables -I INPUT -p tcp --dport porta -j ACCEPT 
+iptables -nL |grep porta
+

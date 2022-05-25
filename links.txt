@@ -1,0 +1,9 @@
+https://docs.microsoft.com/en-us/learn/modules/build-web-api-aspnet-core/5-exercise-add-data-store
+
+https://stackoverflow.com/questions/61568345/install-dotnet-ef-success-but-when-call-it-hit-error
+
+https://jasonwatmore.com/post/2022/03/18/net-6-connect-to-sql-server-with-entity-framework-core
+
+https://dev.to/renukapatil/create-web-api-with-aspnet-core-60-46l4
+
+https://www.anmalkov.com/blog/use-serilog-with-minimal-api-or-aspnet-6

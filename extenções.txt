@@ -1,0 +1,10 @@
+C#
+C# Extensions
+vscode-icons (*) 
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+dotnet tool install --global dotnet-ef
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+dotnet ef migrations add InitialCreate
+dotnet ef database update 
+dotnet add package Serilog.AspNetCore
