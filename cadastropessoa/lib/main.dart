@@ -82,7 +82,7 @@ Widget projectWidget() {
       return profile;
     });
   }
-
+  var loading = true;
   return FutureBuilder(
     builder: (context,AsyncSnapshot snapshot) {      
       if (snapshot.hasError) {
@@ -94,6 +94,13 @@ Widget projectWidget() {
       if (snapshot.connectionState == ConnectionState.none &&
           snapshot.hasData == null) {
         print('project snapshot data is: ${snapshot.data}');
+        return const Center(
+          child: CircularProgressIndicator(),
+         );
+      }
+
+      if (loading){
+        loading = false;
         return const Center(
           child: CircularProgressIndicator(),
          );
@@ -412,7 +419,7 @@ class _AddCustomFormState extends State<AddCustomFormState> {
               child: TextFormField(
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'O campo nome não pode ser vazio!',
+                  labelText: 'Informe seu Nome',
                 ),
                 // The validator receives the text that the user has entered.
                 validator: (value) {
