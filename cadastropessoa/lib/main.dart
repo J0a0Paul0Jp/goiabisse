@@ -72,7 +72,7 @@ Widget projectWidget() {
   Future getProfile() async {
     return Future.delayed(const Duration(seconds: 2), () async{
       BaseOptions options = BaseOptions(
-        baseUrl: "http://localhost:5001",
+        baseUrl: "http://localhost:8080",
         connectTimeout: 5000,
       );
       dio = Dio(options);
@@ -213,7 +213,7 @@ class EditData extends StatelessWidget {
 
   void upateProfile(String id, PessoaBody pessoaBody) async {
     BaseOptions options =  BaseOptions(
-      baseUrl: "http://localhost:5001",
+      baseUrl: "http://localhost:8080",
       connectTimeout: 5000,
     );
   
@@ -326,7 +326,7 @@ class DeleteData  {
 
   void delete(String id) async {
     BaseOptions options =  BaseOptions(
-      baseUrl: "http://localhost:5001",
+      baseUrl: "http://localhost:8080",
       connectTimeout: 5000,
     );
   
@@ -381,7 +381,7 @@ class _AddCustomFormState extends State<AddCustomFormState> {
     super.initState();
 
     BaseOptions options =  BaseOptions(
-      baseUrl: "http://localhost:5001",
+      baseUrl: "http://localhost:8080",
       connectTimeout: 5000,
     );
 
