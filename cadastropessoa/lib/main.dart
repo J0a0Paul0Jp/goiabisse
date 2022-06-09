@@ -101,11 +101,9 @@ Widget projectWidget() {
 
       if (loading){
         loading = false;
-        return const Center(
-          child: CircularProgressIndicator(),
-         );
+        return const Center(child: CircularProgressIndicator());
       }
-
+      loading = false;
       return ListView.builder(
         scrollDirection: Axis.vertical,
         itemExtent: 80,
