@@ -36,6 +36,7 @@ ListView _jobsListView(data) {
       });
 }
 
+
 ListTile _tile(BuildContext context, String firstname, String surname, int age, String id){
   var _age = age.toString();
   return ListTile(
