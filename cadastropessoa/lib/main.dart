@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_null_comparison
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -9,6 +7,20 @@ import 'package:dio/dio.dart';
 import "Pessoa.dart";
 
 void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  static const String _title = 'Pessoas Cadastro';
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: _title,
+      home: MyStateteHome(),
+    );
+  }
+}
 
 ListView _jobsListView(data) {
 
@@ -43,19 +55,6 @@ ListTile _tile(BuildContext context, String firstname, String surname, int age, 
     );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  static const String _title = 'Pessoas Cadastro';
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: _title,
-      home: MyStateteHome(),
-    );
-  }
-}
 
 class MyStateteHome extends StatefulWidget {
   const MyStateteHome({Key? key}) : super(key: key);
@@ -79,18 +78,20 @@ Widget projectWidget() {
       Response response = await dio.get("/pessoa");
       var profile = response.data;
       data = profile;
+      // DateTime date = DateTime.parse(data['creationData']);
+      // print(date.toString());
       return profile;
     });
   }
   var loading = true;
+  
   return FutureBuilder(
     builder: (context,AsyncSnapshot snapshot) {      
       if (snapshot.hasError) {
-            return Text(
-              'There was an error :(',
-              style: Theme.of(context).textTheme.headline3,
-            );
+        loading = false;
+        return const Center(child: CircularProgressIndicator());
       }
+
       if (snapshot.connectionState == ConnectionState.none &&
           snapshot.hasData == null) {
         print('project snapshot data is: ${snapshot.data}');
@@ -197,13 +198,13 @@ class DetailScreen extends StatelessWidget {
                       (Route<dynamic> route) => false,
                     );
                   },
-                  child: const Icon(Icons.delete),
+                  child: const Icon(Icons.delete)
                 )),
           ]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child:
-            Text("Olá ${pessoa.firstname} ${pessoa.surname}\nIdade: ${pessoa.age}."),
+            Text("Olá ${pessoa.firstname} ${pessoa.surname}\nIdade: ${pessoa.age}\nID ${pessoa.id}"),
       ),
     );
   }
@@ -292,14 +293,21 @@ class EditData extends StatelessWidget {
                   // The validator receives the text that the user has entered.
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por falor digite sua idade';
+                      return 'Por favor digite sua idade, use apenas números';
                     }
-                    pessoabody.age = double.parse(value).toInt();
+                    
+                    try {
+                      pessoabody.age = int.parse(value).toInt();
+                      
+                    } catch (FormatException) {
+                      return 'Por favor digite sua idade, utilize apenas números';
+                    }
+
                     return null;
                   },
                 )),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 100.0),
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ElevatedButton(
                 onPressed: () {
                   // Validate returns true if the form is valid, or false otherwise.
@@ -340,9 +348,6 @@ class DeleteData  {
     print(response.data);   
   }
 }
-
-
-
 
 
 class AddData extends StatelessWidget {
@@ -462,8 +467,14 @@ class _AddCustomFormState extends State<AddCustomFormState> {
                     return 'Por favor informe apenas númeo(s)';
                   }
                   
-                  pessoabody.age = double.parse(value).toInt();
                   
+                  try {
+                    pessoabody.age = int.parse(value).toInt();
+                      
+                  } catch (FormatException) {
+                    return 'Por favor digite sua idade, utilize apenas números';
+                  }
+
                   return null;
                 },
               )),
@@ -480,6 +491,7 @@ class _AddCustomFormState extends State<AddCustomFormState> {
                     const SnackBar(content: Text('Novo Cadastro Realizado')),
                   );
                   
+                                   
                   postProfile(pessoabody);
 
                   Navigator.pushAndRemoveUntil(
