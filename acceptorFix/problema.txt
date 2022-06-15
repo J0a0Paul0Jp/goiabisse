@@ -8,14 +8,3 @@ Usuário-Ordens:
 
 Servidor:
    -> Recebe ordens do Usuário
-
-
-Partindo da criação do servidor, vi os exemplos que o QuickFix oferece, veio uma dúvida no que pode representar cada número, 
-
-vemos na definição do método:
-
-void onMessage( const FIX40::NewOrderSingle&, const FIX::SessionID& ); 
-
-como nesse exemplo que tem o parâmentro FIXnumero, ele fica variando a cada overloads, no caso desse parâmetro especifico ele reprensenta algum protocolo especifico em sua variações?, eu poderia usar apenas uma certa definição?
-
- https://github.com/quickfix/quickfix/blob/d73d1e86a2099d1dd6eaa3ed8b7d78ed73888877/examples/executor/C%2B%2B/Application.h#L57
