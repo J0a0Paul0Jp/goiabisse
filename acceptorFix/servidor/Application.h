@@ -23,22 +23,18 @@
 #define EXECUTOR_APPLICATION_H
 
 #include "quickfix/Application.h"
+#include "Order.h"
+#include "OrderCommand.h"
+#include "IDGenerator.h"
 #include "quickfix/MessageCracker.h"
 #include "quickfix/Values.h"
 #include "quickfix/Utility.h"
 #include "quickfix/Mutex.h"
 
-#include "quickfix/fix40/NewOrderSingle.h"
-#include "quickfix/fix41/NewOrderSingle.h"
 #include "quickfix/fix42/NewOrderSingle.h"
-#include "quickfix/fix43/NewOrderSingle.h"
-#include "quickfix/fix44/NewOrderSingle.h"
-#include "quickfix/fix50/NewOrderSingle.h"
 
 class Application: public FIX::Application, public FIX::MessageCracker
 {
-public:
-  Application() : m_orderID(0), m_execID(0) {}
 
   // Application overloads
   void onCreate( const FIX::SessionID& );
@@ -53,25 +49,50 @@ public:
     EXCEPT( FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType );
 
   // MessageCracker overloads
-  // void onMessage( const FIX40::NewOrderSingle&, const FIX::SessionID& );
-  // void onMessage( const FIX41::NewOrderSingle&, const FIX::SessionID& );
-  // void onMessage( const FIX42::NewOrderSingle&, const FIX::SessionID& );
-  // void onMessage( const FIX43::NewOrderSingle&, const FIX::SessionID& );
-  void onMessage( const FIX44::NewOrderSingle&, const FIX::SessionID& );
-  // void onMessage( const FIX50::NewOrderSingle&, const FIX::SessionID& );
+  void onMessage( const FIX42::NewOrderSingle&, const FIX::SessionID& );
 
+  //Order - process a new order of client
+  void newOrder( const Order& );
+  //Order - reject a order
+  void recuseOrder( const Order& order );
+  void recuseOrder( const FIX::SenderCompID&, const FIX::TargetCompID&,
+                    const FIX::ClOrdID& clOrdID, const FIX::Symbol& symbol,
+                    const FIX::Side& side, const std::string& message );
+  //Order - Cancel a order
+  void cancelOrder( const Order& order );
+  void updateOrder( const Order&, char status );
+  void acceptOrder( const Order& order ){ updateOrder( order, FIX::OrdStatus_NEW ); }
+  void fillOrder( const Order& order )
+  {
+    updateOrder( order,
+                 order.isFilled() ? FIX::OrdStatus_FILLED
+                 : FIX::OrdStatus_PARTIALLY_FILLED );
+  }
+  
+  // Type conversions
+  Order::Side convert( const FIX::Side& );
+  Order::Type convert( const FIX::OrdType& );
+  FIX::Side convert( Order::Side );
+  FIX::OrdType convert( Order::Type );
+
+  OrderCommand _orderCommand;
+  IDGenerator m_generator;
+  
   std::string genOrderID() {
     std::stringstream stream;
     stream << ++m_orderID;
     return stream.str();
   }
+  
   std::string genExecID() {
     std::stringstream stream;
     stream << ++m_execID;
     return stream.str();
   }
-private:
-  int m_orderID, m_execID;
-};
+  private:
+    int m_orderID, m_execID;
 
+  public:
+    const OrderCommand& orderCommand() { return _orderCommand; }
+};
 #endif

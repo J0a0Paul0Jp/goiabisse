@@ -24,55 +24,128 @@ void Application::fromApp( const FIX::Message& message,
 EXCEPT( FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType )
 { crack( message, sessionID ); }
 
-void Application::onMessage( const FIX40::NewOrderSingle& message,
-                             const FIX::SessionID& sessionID )
+
+void Application::newOrder( const Order& order )
 {
+  if ( _orderCommand.append( order ) )
+  {
+    acceptOrder( order );
+
+    std::queue < Order > orders;
+    _orderCommand.match( order.getSymbol(), orders );
+
+    while ( orders.size() )
+    {
+      fillOrder( orders.front() );
+      orders.pop();
+    }
+  }
+  else
+    recuseOrder( order );
+}
+
+void Application::onMessage( const FIX42::NewOrderSingle& message, const FIX::SessionID& )
+{
+  FIX::SenderCompID senderCompID;
+  FIX::TargetCompID targetCompID;
+  FIX::ClOrdID clOrdID;
   FIX::Symbol symbol;
   FIX::Side side;
   FIX::OrdType ordType;
-  FIX::OrderQty orderQty;
   FIX::Price price;
-  FIX::ClOrdID clOrdID;
-  FIX::Account account;
+  FIX::OrderQty orderQty;
+  FIX::TimeInForce timeInForce( FIX::TimeInForce_DAY );
 
-  message.get( ordType );
-
-  if ( ordType != FIX::OrdType_LIMIT )
-    throw FIX::IncorrectTagValue( ordType.getField() );
-
+  message.getHeader().get( senderCompID );
+  message.getHeader().get( targetCompID );
+  message.get( clOrdID );
   message.get( symbol );
   message.get( side );
+  message.get( ordType );
+  if ( ordType == FIX::OrdType_LIMIT )
+    message.get( price );
   message.get( orderQty );
-  message.get( price );
-  message.get( clOrdID );
-
-  FIX40::ExecutionReport executionReport = FIX40::ExecutionReport
-      ( FIX::OrderID( genOrderID() ),
-        FIX::ExecID( genExecID() ),
-        FIX::ExecTransType( FIX::ExecTransType_NEW ),
-        FIX::OrdStatus( FIX::OrdStatus_FILLED ),
-        symbol,
-        side,
-        orderQty,
-        FIX::LastShares( orderQty ),
-        FIX::LastPx( price ),
-        FIX::CumQty( orderQty ),
-        FIX::AvgPx( price ) );
-
-  executionReport.set( clOrdID );
-
-  if( message.isSet(account) )
-    executionReport.setField( message.get(account) );
+  message.getFieldIfSet( timeInForce );
 
   try
   {
-    FIX::Session::sendToTarget( executionReport, sessionID );
+    if ( timeInForce != FIX::TimeInForce_DAY )
+      throw std::logic_error( "Unsupported TIF, use Day" );
+
+    Order order( clOrdID, symbol, senderCompID, targetCompID,
+                 convert( side ), convert( ordType ),
+                 price, (long)orderQty );
+
+    newOrder( order );
+  }
+  catch ( std::exception & e )
+  {
+    recuseOrder( senderCompID, targetCompID, clOrdID, symbol, side, e.what() );
+  }
+}
+
+
+
+void Application::recuseOrder
+( const FIX::SenderCompID& sender, const FIX::TargetCompID& target,
+  const FIX::ClOrdID& clOrdID, const FIX::Symbol& symbol,
+  const FIX::Side& side, const std::string& message )
+{
+  FIX::TargetCompID targetCompID( sender.getValue() );
+  FIX::SenderCompID senderCompID( target.getValue() );
+
+  FIX42::ExecutionReport fixOrder
+  ( FIX::OrderID ( clOrdID.getValue() ),
+    FIX::ExecID ( m_generator.genExecutionID() ),
+    FIX::ExecTransType ( FIX::ExecTransType_NEW ),
+    FIX::ExecType ( FIX::ExecType_REJECTED ),
+    FIX::OrdStatus ( FIX::ExecType_REJECTED ),
+    symbol, side, FIX::LeavesQty( 0 ), FIX::CumQty( 0 ), FIX::AvgPx( 0 ) );
+
+  fixOrder.set( clOrdID );
+  fixOrder.set( FIX::Text( message ) );
+
+  try
+  {
+    FIX::Session::sendToTarget( fixOrder, senderCompID, targetCompID );
   }
   catch ( FIX::SessionNotFound& ) {}
 }
 
-// int main()
-// {
-//   std::cout<<"Start Fix!"<<std::endl;
-// }
+Order::Side Application::convert( const FIX::Side& side )
+{
+  switch ( side )
+  {
+    case FIX::Side_BUY: return Order::buy;
+    case FIX::Side_SELL: return Order::sell;
+    default: throw std::logic_error( "Unsupported Side, use buy or sell" );
+  }
+}
 
+Order::Type Application::convert( const FIX::OrdType& ordType )
+{
+  switch ( ordType )
+  {
+    case FIX::OrdType_LIMIT: return Order::limit;
+    default: throw std::logic_error( "Unsupported Order Type, use limit" );
+  }
+}
+
+FIX::Side Application::convert( Order::Side side )
+{
+  switch ( side )
+  {
+    case Order::buy: return FIX::Side( FIX::Side_BUY );
+    case Order::sell: return FIX::Side( FIX::Side_SELL );
+    default: throw std::logic_error( "Unsupported Side, use buy or sell" );
+  }
+}
+
+FIX::OrdType Application::convert( Order::Type type )
+{
+  switch ( type )
+  {
+    case Order::limit: return FIX::OrdType( FIX::OrdType_LIMIT );
+    default: throw std::logic_error( "Unsupported Order Type, use limit" );
+  }
+}
