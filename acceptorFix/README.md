@@ -1,4 +1,6 @@
-## Build on linux
+## Build(servidor) on linux
+
+```cd servidor```
 
 ```cd build```
 
@@ -7,4 +9,4 @@
 ```make```
 
 ## Run app
-```./app```
+```./app Simulador.cfg```
