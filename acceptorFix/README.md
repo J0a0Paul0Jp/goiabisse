@@ -8,5 +8,7 @@
 
 ```make```
 
+```cd ..```
+
 ## Run app
-```./app Simulador.cfg```
+```./build/app Simulador.cfg```
