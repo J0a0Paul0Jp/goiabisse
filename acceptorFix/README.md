@@ -11,4 +11,4 @@
 ```cd ..```
 
 ## Run app
-```./build/app Simulador.cfg```
+```./build/acceptorFix Simulador.cfg```
