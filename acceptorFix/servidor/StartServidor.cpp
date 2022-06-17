@@ -21,9 +21,14 @@
 #pragma warning( disable : 4503 4355 4786 )
 #endif
 
+
 #include "quickfix/FileStore.h"
+#include "quickfix/FileLog.h"
 #include "quickfix/SocketAcceptor.h"
+#include "quickfix/Session.h"
 #include "quickfix/SessionSettings.h"
+#include "quickfix/Application.h"
+
 //Application
 #include "Application.h"
 

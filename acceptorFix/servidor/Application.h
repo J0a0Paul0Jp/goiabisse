@@ -22,16 +22,20 @@
 #ifndef EXECUTOR_APPLICATION_H
 #define EXECUTOR_APPLICATION_H
 
+//#include <SocketAcceptor.h>
 #include "quickfix/Application.h"
 #include "Order.h"
 #include "OrderCommand.h"
 #include "IDGenerator.h"
+
 #include "quickfix/MessageCracker.h"
 #include "quickfix/Values.h"
 #include "quickfix/Utility.h"
 #include "quickfix/Mutex.h"
 
+#include "quickfix/fix42/OrderCancelRequest.h"
 #include "quickfix/fix42/NewOrderSingle.h"
+#include "quickfix/fix42/MarketDataRequest.h"
 
 class Application: public FIX::Application, public FIX::MessageCracker
 {
@@ -54,14 +58,24 @@ class Application: public FIX::Application, public FIX::MessageCracker
   //Order - process a new order of client
   void newOrder( const Order& );
   //Order - reject a order
-  void recuseOrder( const Order& order );
+  void recuseOrder( const Order& order )
+  { updateOrder( order, FIX::OrdStatus_REJECTED ); }
   void recuseOrder( const FIX::SenderCompID&, const FIX::TargetCompID&,
                     const FIX::ClOrdID& clOrdID, const FIX::Symbol& symbol,
                     const FIX::Side& side, const std::string& message );
+  
+  void processCancel( const std::string& id, const std::string& symbol, Order::Side );
+
   //Order - Cancel a order
-  void cancelOrder( const Order& order );
+  void cancelOrder( const Order& order )
+  { updateOrder( order, FIX::OrdStatus_CANCELED ); }
+  void onMessage( const FIX42::OrderCancelRequest&, const FIX::SessionID& );
   void updateOrder( const Order&, char status );
-  void acceptOrder( const Order& order ){ updateOrder( order, FIX::OrdStatus_NEW ); }
+  void rejectOrder( const Order& order )
+  { updateOrder( order, FIX::OrdStatus_REJECTED ); }
+  void acceptOrder( const Order& order )
+  { updateOrder( order, FIX::OrdStatus_NEW ); }
+
   void fillOrder( const Order& order )
   {
     updateOrder( order,
@@ -69,6 +83,7 @@ class Application: public FIX::Application, public FIX::MessageCracker
                  : FIX::OrdStatus_PARTIALLY_FILLED );
   }
   
+
   // Type conversions
   Order::Side convert( const FIX::Side& );
   Order::Type convert( const FIX::OrdType& );

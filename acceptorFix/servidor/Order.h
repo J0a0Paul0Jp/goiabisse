@@ -51,7 +51,7 @@ public:
   const std::string& getOwner() const { return owner; }
   const std::string& getTarget() const { return target; }
   
-  char getSide() const { return side; }
+  Side getSide() const { return side; }
   char getType() const { return type; }
   double getPrice() const { return price; }
   long getQuantity() const { return quantity; }

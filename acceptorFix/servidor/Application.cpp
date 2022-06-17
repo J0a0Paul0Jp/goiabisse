@@ -7,6 +7,13 @@
 #include "quickfix/Session.h"
 #include "quickfix/fix42/ExecutionReport.h"
 
+#include "quickfix/config-all.h"
+#include "quickfix/Application.h"
+#include "quickfix/MessageCracker.h"
+#include "quickfix/Values.h"
+#include "quickfix/Utility.h"
+#include "quickfix/Mutex.h"
+
 void Application::onCreate(const FIX::SessionID&) {}
 void Application::onLogon(const FIX::SessionID&) {}
 void Application::onLogout(const FIX::SessionID&) {}
@@ -43,6 +50,34 @@ void Application::newOrder( const Order& order )
   else
     recuseOrder( order );
 }
+
+
+void Application::processCancel( const std::string& id,
+                                 const std::string& symbol, Order::Side side )
+{
+  Order & order = _orderCommand.find( symbol, side, id );
+  order.cancel();
+  cancelOrder( order );
+  _orderCommand.remove( order );
+}
+
+
+void Application::onMessage( const FIX42::OrderCancelRequest& message, const FIX::SessionID& )
+{
+  FIX::OrigClOrdID origClOrdID;
+  FIX::Symbol symbol;
+  FIX::Side side;
+
+  message.get( origClOrdID );
+  message.get( symbol );
+  message.get( side );
+
+  try
+  {
+    processCancel( origClOrdID, symbol, convert( side ) );
+  }
+  catch ( std::exception& ) {}}
+
 
 void Application::onMessage( const FIX42::NewOrderSingle& message, const FIX::SessionID& )
 {
@@ -85,6 +120,39 @@ void Application::onMessage( const FIX42::NewOrderSingle& message, const FIX::Se
 }
 
 
+void Application::updateOrder( const Order& order, char status )
+{
+  FIX::TargetCompID targetCompID( order.getOwner() );
+  FIX::SenderCompID senderCompID( order.getTarget() );
+
+  FIX42::ExecutionReport fixOrder
+  ( FIX::OrderID ( order.getClientID() ),
+    FIX::ExecID ( m_generator.genExecutionID() ),
+    FIX::ExecTransType ( FIX::ExecTransType_NEW ),
+    FIX::ExecType ( status ),
+    FIX::OrdStatus ( status ),
+    FIX::Symbol ( order.getSymbol() ),
+    FIX::Side ( convert( order.getSide() ) ),
+    FIX::LeavesQty ( order.getOpenQuantity() ),
+    FIX::CumQty ( order.getExecutedQuantity() ),
+    FIX::AvgPx ( order.getAvgExecutedPrice() ) );
+
+  fixOrder.set( FIX::ClOrdID( order.getClientID() ) );
+  fixOrder.set( FIX::OrderQty( order.getQuantity() ) );
+
+  if ( status == FIX::OrdStatus_FILLED ||
+       status == FIX::OrdStatus_PARTIALLY_FILLED )
+  {
+    fixOrder.set( FIX::LastShares( order.getLastExecutedQuantity() ) );
+    fixOrder.set( FIX::LastPx( order.getLastExecutedPrice() ) );
+  }
+
+  try
+  {
+    FIX::Session::sendToTarget( fixOrder, senderCompID, targetCompID );
+  }
+  catch ( FIX::SessionNotFound& ) {}
+}
 
 void Application::recuseOrder
 ( const FIX::SenderCompID& sender, const FIX::TargetCompID& target,
