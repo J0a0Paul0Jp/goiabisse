@@ -1,4 +1,5 @@
-## Build(servidor) on linux
+
+## Build(servidor)
 
 ```cd servidor```
 
@@ -10,5 +11,21 @@
 
 ```cd ..```
 
-## Run app
-```./build/app Simulador.cfg```
+## Run servidor
+```./build/acceptorFix simulador.cfg```
+
+## Build(client)
+
+```cd client```
+
+```mkdir build && cd build```
+
+```cmake ..```
+
+```make```
+
+```cd ..```
+
+## Run client
+```./build/acceptorFix simulador.cfg```
+
