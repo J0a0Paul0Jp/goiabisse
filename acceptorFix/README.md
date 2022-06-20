@@ -1,3 +1,4 @@
+
 ## Build(servidor)
 
 ```cd servidor```
@@ -11,7 +12,7 @@
 ```cd ..```
 
 ## Run servidor
-```./build/acceptorFix Simulador.cfg```
+```./build/acceptorFix simulador.cfg```
 
 ## Build(client)
 
