@@ -50,8 +50,8 @@ int main( int argc, char** argv )
 {
   if ( argc < 2 )
   {
-    std::cout << "Informe o arquivo de configuração: " << argv[ 0 ]
-    << " ARQUIVO." << std::endl;
+    std::cout << "Forma de uso: " << argv[ 0 ]
+    << " simulador.cfg" << std::endl;
     return 0;
   }
   std::string file = argv[ 1 ];
