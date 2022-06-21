@@ -9,4 +9,4 @@ add_executable(
 
 target_link_directories("${PROJECT_NAME}" PRIVATE "lib")
 target_link_libraries("${PROJECT_NAME}" PRIVATE "quickfix")
-target_include_directories("${PROJECT_NAME}" PRIVATE "${PROJECT_SOURCE_DIR}/src")
+target_include_directories("${PROJECT_NAME}" PRIVATE "src")
